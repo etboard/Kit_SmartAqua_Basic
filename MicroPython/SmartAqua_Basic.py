@@ -49,9 +49,23 @@ def loop():
     
     ds_sensor.convert_temp()
     time.sleep_ms(750)
+    temp = 0;
     for rom in roms:    
         temp = ds_sensor.read_temp(rom);
-        print(temp)
+    print(temp)        
+        
+    #--------------------------------------------------------------------------------------
+    # OLED 텍스트 표시
+    #--------------------------------------------------------------------------------------
+    text1 = "Temp: %d" %(temp) + "C"         
+    text2 = "TDS: %d" %(3) + "ppm"
+
+    oled.clear()
+    oled.setLine(1, "* Aqua *")                  # OLED 첫 번째 줄 : 시스템 이름
+    oled.setLine(2, text1)                       # OLED 두 번째 줄 : 태양광 발전 전압
+    oled.setLine(3, text2)                       # OLED 세 번째 줄 : 풍력 발전 전압
+    oled.display()
+    
   
     if (temp < 28):
        PinD2.value(HIGH)      # LED 켜기
