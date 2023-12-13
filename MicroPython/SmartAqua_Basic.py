@@ -22,7 +22,7 @@ import onewire, ds18x20                            # 수중온도 센서 관련 
 # global variable
 oled = oled_u8g2()                                 
 
-PinD2 = Pin(D2, Pin.OUT)                         # D2를 LED 출력모드 설정
+heater_pin = Pin(D2, Pin.OUT)                      # D2를 LED 출력모드 설정
 ds_pin = Pin(D6)
 ds_sensor = ds18x20.DS18X20(onewire.OneWire(ds_pin))
 
@@ -62,15 +62,15 @@ def loop():
 
     oled.clear()
     oled.setLine(1, "* Aqua *")                  # OLED 첫 번째 줄 : 시스템 이름
-    oled.setLine(2, text1)                       # OLED 두 번째 줄 : 태양광 발전 전압
-    oled.setLine(3, text2)                       # OLED 세 번째 줄 : 풍력 발전 전압
+    oled.setLine(2, text1)                       # OLED 두 번째 줄 : 
+    oled.setLine(3, text2)                       # OLED 세 번째 줄 : 
     oled.display()
     
   
     if (temp < 28):
-       PinD2.value(HIGH)      # LED 켜기
+       heater_pin.value(HIGH)                    # LED 켜기
     else:
-       PinD2.value(LOW)       # LED 끄기
+       heater_pin.value(LOW)                     # LED 끄기
     
     time.sleep(0.3)                                
 
