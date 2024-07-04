@@ -7,6 +7,8 @@
 # Reference    : 해당 소스 코드는 360도 서보 모터를 사용하는 것을 전제 하에 작성하였습니다.
 # Modified     : 2024.05.07 : PEJ : 함수 생성, 코드 정리, 주석 추가
 # Modified     : 2024.05.10 : PEJ : 360도 서보모터 안내문 추가, 함수 수정
+# Modified     : 2024.07.03 : PEJ : timer 시간과 형식 출력 변경
+# Modified     : 2024.07.04 : PEJ : 자동 모드일 때도 먹이 공급 버튼이 동작하도록 수정
 # ******************************************************************************************************
 
 
@@ -48,8 +50,9 @@ temp = 0                                           # 온도를 0으로 초기화
 tds = 0                                            # 수질을 0으로 초기화
 water_level = "shortage"                           # 수위를 "shortage"로 초기화
 motor_state = "Off"                                # 모터 상태를 "Off"로 초기화
+timer_line = ""                                    # 남은 시간을 공백으로 초기화
 
-timer = 10                                         # 먹이 공급 타이머의 시간을 10초(임의 값)로 초기화
+timer = 1 * 60  * 120                              # 먹이 공급 타이머의 시간을 2시간(1 * 초 * 분)으로 초기화
 last_feeding_time = 0                              # 마지막 먹이 공급 시간을 0으로 초기화
 now = 0                                            # 현재 시간을 0으로 초기화
 
@@ -195,9 +198,9 @@ def food_supply():
     step = "step 5"                                # step 단계 저장
     oled_print()                                   # OLED 출력 함수 호출
 
-    if mode != "a":                                # mode가 "a(utomatic)"가 아니라면
-        if servo_button.value() == LOW:            # 서보 모터 버튼이 눌렸다면
-            servo_control()                        # 먹이 공급 함수 호출
+    if servo_button.value() == LOW:                # 서보 모터 버튼이 눌렸다면
+        servo_control()                            # 먹이 공급 함수 호출
+        last_feeding_time = now                    # 마지막 먹이 공급 시간에 현재 시간 저장
         return
 
     if now - last_feeding_time >= timer:           # 현재 시간 - 마지막 먹이 공급 시간 >= 타이머 시간
@@ -234,20 +237,34 @@ def motor_on():
 def motor_off():
     servo_pin.write_angle(90)                      # 360도 서보 모터 중지
 
+#=======================================================================================================
+# time_calculate
+#=======================================================================================================
+def time_calculate():
+    global last_feeding_time, now, timer_line
+
+    cal_time = now - last_feeding_time
+    minute, sec = divmod(timer - cal_time, 60)
+    hour = 0
+    if minute > 60:
+        hour = int(minute / 60)
+        minute = minute % 60
+    timer_line = "Timer: " + '{:0>2}'.format(hour) + ':' + '{:0>2}'.format(minute) + ':' + '{:0>2}'.format(sec)
+
+
 
 #=======================================================================================================
 # oled_print
 #=======================================================================================================
 def oled_print():
-    global mode, step, temp, tds, water_level, motor_state, \
-           last_feeding_time, now                  # 전역 변수 호출
+    # 전역 변수 호출
+    global mode, step, temp, tds, water_level, motor_state, timer_line
 
     mode_line = "Mode: manual"
     timer_line = ""
     if mode == "a":                                # 모드가 "a(utomatic)"라면
         mode_line = "Mode: automatic"
-        cal_time = now - last_feeding_time
-        timer_line = "Timer: " + str(timer - cal_time) + "sec"
+        time_calculate()
 
     temp_line = "Temp: %d" %(temp) + "C "
     tds_line = "TDS: %d" %(tds) + "ppm"
@@ -267,8 +284,9 @@ def oled_print():
 
     oled.display()
 
-
+#=======================================================================================================
 # start point
+#=======================================================================================================
 if __name__ == "__main__":
     setup()
     while True:
