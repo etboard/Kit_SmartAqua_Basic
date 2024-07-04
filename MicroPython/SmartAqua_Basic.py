@@ -48,8 +48,9 @@ temp = 0                                           # 온도를 0으로 초기화
 tds = 0                                            # 수질을 0으로 초기화
 water_level = "shortage"                           # 수위를 "shortage"로 초기화
 motor_state = "Off"                                # 모터 상태를 "Off"로 초기화
+timer_line = ""                                    # 남은 시간을 공백으로 초기화
 
-timer = 10                                         # 먹이 공급 타이머의 시간을 10초(임의 값)로 초기화
+timer = 1 * 60  * 120                              # 먹이 공급 타이머의 시간을 2시간(1 * 초 * 분)으로 초기화
 last_feeding_time = 0                              # 마지막 먹이 공급 시간을 0으로 초기화
 now = 0                                            # 현재 시간을 0으로 초기화
 
@@ -234,20 +235,34 @@ def motor_on():
 def motor_off():
     servo_pin.write_angle(90)                      # 360도 서보 모터 중지
 
+#=======================================================================================================
+# time_calculate
+#=======================================================================================================
+def time_calculate():
+    global last_feeding_time, now, timer_line
+
+    cal_time = now - last_feeding_time
+    minute, sec = divmod(timer - cal_time, 60)
+    hour = 0
+    if minute > 60:
+        hour = int(minute / 60)
+        minute = minute % 60
+    timer_line = "Timer: " + '{:0>2}'.format(hour) + ':' + '{:0>2}'.format(minute) + ':' + '{:0>2}'.format(sec)
+
+
 
 #=======================================================================================================
 # oled_print
 #=======================================================================================================
 def oled_print():
-    global mode, step, temp, tds, water_level, motor_state, \
-           last_feeding_time, now                  # 전역 변수 호출
+    # 전역 변수 호출
+    global mode, step, temp, tds, water_level, motor_state, timer_line
 
     mode_line = "Mode: manual"
     timer_line = ""
     if mode == "a":                                # 모드가 "a(utomatic)"라면
         mode_line = "Mode: automatic"
-        cal_time = now - last_feeding_time
-        timer_line = "Timer: " + str(timer - cal_time) + "sec"
+        time_calculate()
 
     temp_line = "Temp: %d" %(temp) + "C "
     tds_line = "TDS: %d" %(tds) + "ppm"
