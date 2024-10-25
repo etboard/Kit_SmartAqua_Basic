@@ -315,7 +315,10 @@ void time_remaining_calculate()                          // 남은 시간 계산
 
   int second = timer_cal / 1000;
 
-  time_remaining = String(hour) + ":" + String(minute) + ":" + String(second);
+  char buffer[9];  // "hh:mm:ss" 형식의 문자열을 저장할 버퍼
+  sprintf(buffer, "%02d:%02d:%02d", hour, minute, second);
+
+  time_remaining = String(buffer);
 }
 
 
