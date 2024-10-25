@@ -6,6 +6,7 @@
  * Warning      : Arduino IDE에서 u8g2 라이브러리를 추가해서 컴파일 해야함
  * Created Date : 2023.12.13 : SCS : 최초 작성
  * Modified     : 2024.10.23 : PEJ : 구조 변경
+ * Modified     : 2024.10.25 : PEJ : 주기 처리 함수 추가
  * Reference    : https://randomnerdtutorials.com/esp32-ds18b20-temperature-arduino-ide/
  ******************************************************************************************************/
 
@@ -61,7 +62,8 @@ String time_remaining = "00:00:00";                      // 남은 타이머 시
 
 String step = "step 0";                                  // 스텝
 
-unsigned long previous_time = 0;
+unsigned long short_previous_time = 0;
+unsigned long long_previous_time = 0;
 
 //=======================================================================================================
 void setup()                                             // 설정
@@ -91,9 +93,9 @@ void loop()                                              // 사용자 반복 처
 
   do_automatic_process();                                // 자동화 처리
 
-  display_information();                                 // OLED 표시
+  et_short_periodic_process();                           // 짧은 주기 처리
 
-  display_serial();                                      // 시리얼 정보 표시
+  et_long_periodic_process();                            // 긴 주기 처리
 }
 
 
@@ -167,7 +169,7 @@ void tds_get()                                           // 수온 측정
     return;
   }
 
-  float voltage = tds_value * 5.0 / 1023.0;
+  float voltage = tds_value * 5.0 / 1023.0;              // 수질 계산
   float compensationVoltage = voltage * (1.0 + 0.02 * (temp - 25.0));
   tds = (133.42 / compensationVoltage * compensationVoltage * compensationVoltage - 255.86
         * compensationVoltage * compensationVoltage + 857.39 * compensationVoltage) * 0.5;
@@ -255,6 +257,22 @@ void do_automatic_process()                              // 자동화 처리
 
 
 //==========================================================================================
+void et_short_periodic_process()                         // 사용자 주기적 처리 (예 : 1초마다)
+//==========================================================================================
+{
+  unsigned long interval = 1 * 1000UL;                   // 1초마다 정보 표시
+  unsigned long now = millis();
+
+  if (now - short_previous_time < interval) {            // 1초가 지나지 않았다면
+    return;
+  }
+  short_previous_time = now;
+
+  display_information();                                 // 표시 처리
+}
+
+
+//==========================================================================================
 void display_information()                               // OLED 표시
 //==========================================================================================
 {
@@ -302,17 +320,25 @@ void time_remaining_calculate()                          // 남은 시간 계산
 
 
 //==========================================================================================
-void display_serial()                                    // 시리얼 모니터 표시
+void et_long_periodic_process()                          // 사용자 주기적 처리 (예 : 5초마다)
 //==========================================================================================
 {
   unsigned long interval = 5 * 1000UL;                   // 5초마다 정보 표시
+  unsigned long now = millis();
 
-  if (now - previous_time < interval) {                  // 5초가 지나지 않았다면
+  if (now - long_previous_time < interval) {             // 5초가 지나지 않았다면
     return;
   }
+  long_previous_time = now;
 
-  previous_time = now;
+  display_serial();                                      // 시리얼 모니터 정보 표시
+}
 
+
+//==========================================================================================
+void display_serial()                                    // 시리얼 모니터 표시
+//==========================================================================================
+{
   Serial.println("모드: " + mode);
   Serial.println("수온: " + String(temp));
   Serial.println("수질: " + String(tds));
