@@ -1,5 +1,5 @@
 /******************************************************************************************************
- * FileName     : SmartAuqa_Basic
+ * FileName     : SmartAqua_Basic.ino
  * Description  : 스마트 아쿠아 코딩 키트 (기본)
  * Author       : 손철수
  * CopyRight    : (주)한국공학기술연구원(www.ketri.re.kr)
@@ -7,6 +7,7 @@
  * Created Date : 2023.12.13 : SCS : 최초 작성
  * Modified     : 2024.10.23 : PEJ : 구조 변경
  * Modified     : 2024.10.25 : PEJ : 주기 처리 함수 추가
+ * Modified     : 2024.10.25 : PEJ : 헤더 FileName 변경
  * Reference    : https://randomnerdtutorials.com/esp32-ds18b20-temperature-arduino-ide/
  ******************************************************************************************************/
 
