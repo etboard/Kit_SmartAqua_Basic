@@ -12,6 +12,7 @@
 # Modified     : 2024.10.10 : PEJ : 수온, 수위, 모드 변경 버튼 핀 변경
 # Modified     : 2024.10.10 : PEJ : 정보 표시 함수 추가
 # Modified     : 2024.10.23 : PEJ : 구조 변경
+# Modified     : 2025.06.30 : 박은정 : 타이머 계산 방법 수정
 # ******************************************************************************************
 
 
@@ -60,7 +61,12 @@ tds = 0                                                  # 수질
 level = 'shortage'                                       # 수위
 motor_state = 'off'                                      # 모터 상태
 
-timer = 1 * 60  * 120                                    # 먹이 공급 타이머의 시간
+hours = 2                                                # 타이머의 시간 (2시간)
+minutes = 30                                             # 타이머의 분 (30분)
+seconds = 10                                             # 타이머의 초 (10초)
+# 타이머 시간 계산(현재 2시간 30분 10초로 설정되어 있음)
+timer = hours * 3600 + minutes * 60 + seconds
+
 now = int(round(time.time()))                            # 현재 시간
 last_feeding = int(round(time.time()))                   # 마지막 먹이 공급 시간
 time_remaining = ''                                      # 남은 타이머 시간
@@ -253,17 +259,13 @@ def time_remaining_calculate():                          # 남은 타이머 시�
 #===========================================================================================
     global last_feeding, now, time_remaining
 
-    cal_time = now - last_feeding
+    remaining = max(timer - (now - last_feeding), 0)     # 남은 시간 계산 (음수 방지)
 
-    if timer - cal_time < 0:
-        time_remaining = "00:00:00"
-        return
+    h = remaining // 3600
+    m = (remaining % 3600) // 60
+    s = remaining % 60
 
-    minute, sec = divmod(timer - cal_time, 60)
-    hour, minute = divmod(minute, 60)
-
-    time_remaining = '{:0>2}'.format(hour) + ':' + '{:0>2}'.format(minute) + ':' + \
-                     '{:0>2}'.format(sec)
+    time_remaining = f"{h:02}:{m:02}:{s:02}"
 
 
 #===========================================================================================

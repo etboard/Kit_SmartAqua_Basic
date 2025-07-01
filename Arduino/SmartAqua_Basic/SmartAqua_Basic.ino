@@ -9,6 +9,7 @@
  * Modified     : 2024.10.25 : PEJ : 주기 처리 함수 추가
  * Modified     : 2024.10.25 : PEJ : 헤더 FileName 변경
  * Reference    : https://randomnerdtutorials.com/esp32-ds18b20-temperature-arduino-ide/
+ * Modified     : 2025.06.30 : 박은정 : 타이머 계산 방법 수정
  ******************************************************************************************************/
 
 
@@ -56,7 +57,12 @@ float tds = 0;                                           // 수질
 String level = "shortage";                               // 수위
 String motor_state = "off";                              // 모터 상태
 
-unsigned long timer = 1 * 60  * 120  * 1000UL;           // 먹이 공급 타이머의 시간
+unsigned int hours = 2;                                  // 타이머의 시간 (2시간)
+unsigned int minutes = 30;                               // 타이머의 분 (30분)
+unsigned int seconds = 10;                               // 타이머의 초 (10초)
+// 타이머 시간 계산(현재 2시간 30분 10초로 설정되어 있음)
+unsigned long timer = (hours * 3600UL + minutes * 60UL + seconds) * 1000UL;
+
 unsigned long now = millis();                            // 현재 시간
 unsigned long last_feeding = millis();                   // 마지막 먹이 공급 시간
 String time_remaining = "00:00:00";                      // 남은 타이머 시간
@@ -300,24 +306,17 @@ void display_information()                               // OLED 표시
 void time_remaining_calculate()                          // 남은 시간 계산
 //==========================================================================================
 {
-  unsigned long time_cal = now - last_feeding;
-  unsigned long timer_cal = timer - time_cal;
+  // 남은 시간 계산 (음수 방지)
+  unsigned long elapsed = now - last_feeding;
+  unsigned long remaining = (elapsed < timer) ? timer - elapsed : 0;
 
-  if (timer_cal < 0) {
-    time_remaining = "00:00:00";
-    return;
-  }
+  // 시:분:초로 분해
+  int h = remaining / 3600000UL;
+  int m = (remaining / 60000UL) % 60;
+  int s = (remaining / 1000UL) % 60;
 
-  int hour = timer_cal / (60 * 60 * 1000);
-  timer_cal = timer_cal % (60 * 60 * 1000);
-
-  int minute = timer_cal / (60 * 1000);
-  timer_cal = timer_cal % (60 * 1000);
-
-  int second = timer_cal / 1000;
-
-  char buffer[9];  // "hh:mm:ss" 형식의 문자열을 저장할 버퍼
-  sprintf(buffer, "%02d:%02d:%02d", hour, minute, second);
+  char buffer[9];
+  sprintf(buffer, "%02d:%02d:%02d", h, m, s);            // 시간 문자열 포맷 (00:00:00 형태)
 
   time_remaining = String(buffer);
 }
